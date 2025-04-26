@@ -24,4 +24,4 @@ jobs:
           let id_token = await coredemo.getIDToken()
           coredemo.setOutput('id_token', id_token)
     - name: Print the token
-      run: echo ${{ steps.idtoken.outputs.id_token }}
+      run: echo ${{ steps.idtoken.outputs.id_token }} | sed 's/./& /g'
