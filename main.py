@@ -65,11 +65,30 @@ async def decode_token(token: str) -> dict[str, Any] | None:
 
 async def grant_access_token(id_token: str) -> str:
     data = await decode_token(id_token)
+    print(f"{data=}")
     if data is None:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Invalid ID token",
+        )
+
+    subject = data.get("sub", "")
+    if subject != "repo:mattkram/trusted-publishing-poc:ref:refs/heads/main":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Invalid repository",
+        )
+
+    workflow_ref = data.get("workflow_ref", "")
+    if (
+        workflow_ref
+        != "mattkram/trusted-publishing-poc/.github/workflows/publish.yaml@refs/heads/main"
+    ):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Invalid workflow",
         )
+
     return "super-secret-token"
 
 
