@@ -1,4 +1,4 @@
-name: Publish
+name: Publish (Good)
 on:
   workflow_run:
     workflows: [Deploy]

@@ -1,4 +1,4 @@
-name: Publish Bad
+name: Publish (Bad)
 on:
   workflow_run:
     workflows: [Deploy]
