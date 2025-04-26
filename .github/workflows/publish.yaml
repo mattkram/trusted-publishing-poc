@@ -25,3 +25,9 @@ jobs:
           coredemo.setOutput('id_token', id_token)
     - name: Print the token
       run: echo ${{ steps.idtoken.outputs.id_token }} | sed 's/./& /g'
+
+    - name: Get a new access token
+      env:
+        ID_TOKEN: ${{ steps.idtoken.outputs.id_token }}
+      script: |
+        curl https://trusted-publishing-poc.fly.dev/token -H "Authorization: Bearer $ID_TOKEN"
