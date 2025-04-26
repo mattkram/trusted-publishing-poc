@@ -4,7 +4,7 @@ WORKDIR /app
 
 # Create the prod conda environment
 COPY ./environment.yml ./
-RUN conda env create -p /opt/env -f environment.yml
+RUN conda env create -p /opt/env -f environment.yaml
 ENV PATH="/opt/env/bin:${PATH}"
 
 # Copy in the app code
