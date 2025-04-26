@@ -1,0 +1,22 @@
+# fly.toml app configuration file generated for trusted-publishing-poc on 2025-04-25T21:58:47-05:00
+#
+# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
+#
+
+app = 'trusted-publishing-poc'
+primary_region = 'dfw'
+
+[build]
+
+[http_service]
+auto_start_machines = true
+auto_stop_machines = 'stop'
+force_https = true
+internal_port = 8000
+min_machines_running = 0
+processes = ['app']
+
+[[vm]]
+cpu_kind = 'shared'
+cpus = 1
+memory = '1gb'
