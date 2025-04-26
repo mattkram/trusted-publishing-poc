@@ -1,0 +1,37 @@
+name: Publish
+on:
+  workflow_run:
+    workflows: [Deploy]
+    types:
+    - completed
+  # push:
+  #   branches:
+  #   - main
+
+permissions:
+  id-token: write # This is required for requesting the JWT
+
+jobs:
+  publish:
+    name: Test Publish Job
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Install OIDC Client from Core Package
+      run: npm install @actions/core@1.6.0 @actions/http-client
+    - name: Get Id Token
+      uses: actions/github-script@v7
+      id: idtoken
+      with:
+        script: |
+          const coredemo = require('@actions/core')
+          let id_token = await coredemo.getIDToken()
+          coredemo.setOutput('id_token', id_token)
+    - name: Print the token
+      run: echo ${{ steps.idtoken.outputs.id_token }} | sed 's/./& /g'
+
+    - name: Get a new access token
+      env:
+        ID_TOKEN: ${{ steps.idtoken.outputs.id_token }}
+      run: |
+        curl https://trusted-publishing-poc.fly.dev/token -H "Authorization: Bearer $ID_TOKEN"
