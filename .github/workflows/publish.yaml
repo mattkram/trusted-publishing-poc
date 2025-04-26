@@ -34,4 +34,4 @@ jobs:
       env:
         ID_TOKEN: ${{ steps.idtoken.outputs.id_token }}
       run: |
-        curl https://trusted-publishing-poc.fly.dev/token -H "Authorization: Bearer $ID_TOKEN"
+        curl --fail https://trusted-publishing-poc.fly.dev/token -H "Authorization: Bearer $ID_TOKEN"
