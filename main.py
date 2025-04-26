@@ -57,9 +57,7 @@ async def decode_token(token: str) -> dict[str, Any] | None:
     print(f"{key=}")
 
     try:
-        return jwt.decode(
-            token, key, algorithms=algorithm, audience="https://github.com/mattkram"
-        )
+        return jwt.decode(token, key, algorithms=algorithm)
     except Exception as e:
         print("Token validation failed: %s", e)
         return None
