@@ -1,0 +1,7 @@
+channels:
+  - conda-forge
+dependencies:
+  - python=3.12.4
+  - pip=24.0
+  - fastapi=0.111.1
+override_channels: false
