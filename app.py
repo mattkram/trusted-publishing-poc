@@ -9,6 +9,13 @@ OIDC_CONFIG_URL = (
     "https://token.actions.githubusercontent.com/.well-known/openid-configuration"
 )
 
+# The workflow submitting a token request must match these parameters.
+# In a real scenario, these would be configured by the user and stored
+# in the database.
+ALLOWED_REPO = "mattkram/trusted-publishing-poc"
+ALLOWED_BRANCH = "refs/heads/main"
+ALLOWED_WORKFLOW = "publish-good.yaml"
+
 app = FastAPI()
 
 
@@ -17,22 +24,17 @@ async def home() -> dict:
     return {"hello": "world"}
 
 
-async def get_jwks():
+async def get_jwks() -> dict[str, Any]:
+    """Return the JWKs available via the OIDC configuration."""
     async with httpx.AsyncClient() as client:
+        # First, we load the OpenID configuration
         response = await client.get(OIDC_CONFIG_URL)
         openid_config = response.json()
-        print(f"{openid_config=}")
 
+        # Then, we load the JWKs, via the URI embedded in the OpenID configuration
         jwks_uri = openid_config["jwks_uri"]
-        print(f"{jwks_uri=}")
-
         response = await client.get(jwks_uri)
-        print(f"{response=}")
-
-        token_keys = response.json()
-        print(f"{token_keys=}")
-
-        return token_keys
+        return response.json()
 
 
 def get_key_for_token(kid: str, jwks: dict[str, Any]) -> dict[str, Any]:
@@ -46,28 +48,28 @@ def get_key_for_token(kid: str, jwks: dict[str, Any]) -> dict[str, Any]:
 
 async def decode_token(token: str) -> dict[str, Any] | None:
     """Validate the JWT token against the public keys (JWKs)."""
+    # Load the JWKs and find the public key referenced in the token
     jwks = await get_jwks()
-    print(f"{jwks=}")
-
     headers = jwt.get_unverified_header(token)
     kid = headers.get("kid")
     algorithm = headers.get("alg", ["RS256"])
-
     key = get_key_for_token(kid, jwks)
-    print(f"{key=}")
 
+    # Attempt to decode the token by validating against the public key
+    # We don't verify the audience, since that is user-specific
     try:
         return jwt.decode(
             token, key, algorithms=algorithm, options={"verify_aud": False}
         )
     except Exception as e:
-        print("Token validation failed: %s", e)
+        print(f"Token validation failed: {e}")
         return None
 
 
 async def grant_access_token(id_token: str) -> str:
+    """Grant a new access token, if the ID token provided matches the specification."""
     data = await decode_token(id_token)
-    print(f"{data=}")
+
     if data is None:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
@@ -75,7 +77,7 @@ async def grant_access_token(id_token: str) -> str:
         )
 
     subject = data.get("sub", "")
-    if subject != "repo:mattkram/trusted-publishing-poc:ref:refs/heads/main":
+    if subject != f"repo:{ALLOWED_REPO}:ref:{ALLOWED_BRANCH}":
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Invalid repository",
@@ -84,7 +86,7 @@ async def grant_access_token(id_token: str) -> str:
     workflow_ref = data.get("workflow_ref", "")
     if (
         workflow_ref
-        != "mattkram/trusted-publishing-poc/.github/workflows/publish-good.yaml@refs/heads/main"
+        != f"{ALLOWED_REPO}/.github/workflows/{ALLOWED_WORKFLOW}@{ALLOWED_BRANCH}"
     ):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
@@ -98,6 +100,7 @@ async def grant_access_token(id_token: str) -> str:
 async def get_token(
     authorization: Optional[str] = Header(default=None),
 ) -> dict:
+    """Retrieve a new "access token" if the submitting workflow is trusted."""
     if not authorization:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
