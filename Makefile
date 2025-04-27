@@ -11,6 +11,5 @@ dev:
 
 build:
 	docker build .
-	# -t $(image):$(docker_tag)
 
 .PHONY: $(MAKECMDGOALS)
