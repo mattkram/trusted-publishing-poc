@@ -20,7 +20,16 @@ The following two links provide a majority of the details and give an overview o
 
 In our case, the FastAPI app represents the "Cloud Provider", while the workflows represent the user wanting to perform a package upload from a trusted publisher (GitHub).
 
-The GitHub Actions workflow in [.github/workflows/publish-good.yaml] requests the following permissions, which provides the workflow with an ID token.
+### The FastAPI App
+
+The FastAPI app is defined in `app.py`.
+The dependencies are specified in `environment.yaml`, and the application is deployed using the `Dockerfile`.
+We are using fly.io as a hosting provider, which uses the settings in `fly.toml`.
+The application is continuously deployed using [this workflow file](./.github/workflows/deploy.yaml).
+
+### The Publish Workflows
+
+The GitHub Actions workflow in [./.github/workflows/publish-good.yaml](./.github/workflows/publish-good.yaml) requests the following permissions, which provides the workflow with an ID token.
 
 ```yaml
 permissions:
