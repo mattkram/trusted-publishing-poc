@@ -58,9 +58,7 @@ async def decode_token(token: str) -> dict[str, Any] | None:
     # Attempt to decode the token by validating against the public key
     # We don't verify the audience, since that is user-specific
     try:
-        return jwt.decode(
-            token, key, algorithms=algorithm, options={"verify_aud": False}
-        )
+        return jwt.decode(token, key, algorithms=algorithm)
     except Exception as e:
         print(f"Token validation failed: {e}")
         return None
