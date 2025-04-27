@@ -84,7 +84,7 @@ async def grant_access_token(id_token: str) -> str:
     workflow_ref = data.get("workflow_ref", "")
     if (
         workflow_ref
-        != "mattkram/trusted-publishing-poc/.github/workflows/publish.yaml@refs/heads/main"
+        != "mattkram/trusted-publishing-poc/.github/workflows/publish-good.yaml@refs/heads/main"
     ):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
