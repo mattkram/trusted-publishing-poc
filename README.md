@@ -20,6 +20,24 @@ The following two links provide a majority of the details and give an overview o
 
 In our case, the FastAPI app represents the "Cloud Provider", while the workflows represent the user wanting to perform a package upload from a trusted publisher (GitHub).
 
+### Sequence Diagram
+
+The diagram below demonstrates the sequence of the token exchange/grant process.
+All except the final upload are implemented in this POC.
+
+```mermaid
+sequenceDiagram
+    GitHub Action->>GitHub OIDC Provider: Request new ID token
+    GitHub OIDC Provider->>GitHub Action: Signed ID token specific to workflow run
+    GitHub Action->>Service: Request new access token, passing in ID token
+    Service->>GitHub OIDC Provider: Request public keys (JWKs)
+    GitHub OIDC Provider->>Service: Public JWKs
+    Service->>Service: Validate ID token against public keys
+    Service->>Service: Check that workflow and repo match allowable
+    Service->>GitHub Action: New short-lived, scoped access token
+    GitHub Action->>Service: POST request with file to upload and short-lived acess token
+```
+
 ### The FastAPI App
 
 The FastAPI app is defined in `app.py`.
